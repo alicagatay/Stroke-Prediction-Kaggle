@@ -1,0 +1,270 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "fd5452b8",
+   "metadata": {
+    "papermill": {
+     "duration": 0.003962,
+     "end_time": "2024-10-18T09:52:48.160937",
+     "exception": false,
+     "start_time": "2024-10-18T09:52:48.156975",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# Problem Statement\n",
+    "Stroke is the second leading cause of death globally, accounting for approximately 11% of all fatalities, according to the World Health Organization (WHO). Despite advancements in healthcare, predicting the likelihood of a stroke remains a challenge. The aim of this project is to forecast the probability of an individual experiencing a stroke based on a range of health parameters. Through the analysis of data pertaining to factors such as age, gender, BMI, and medical history, a machine learning model can be developed to anticipate the likelihood of a stroke in an individual. This model holds promise for early identification, facilitating timely interventions to prevent adverse outcomes."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c26f2daf",
+   "metadata": {
+    "papermill": {
+     "duration": 0.003043,
+     "end_time": "2024-10-18T09:52:48.167453",
+     "exception": false,
+     "start_time": "2024-10-18T09:52:48.164410",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# The Dataset\n",
+    "The dataset aims to predict the likelihood of stroke by analysing real-world health data from individuals, including patients’ demographics and health attributes. The goal is to provide insights to support early intervention and prevention strategies for stroke. Each row in the data provides relevant information about the patient, such as:\n",
+    "1. id: unique identifier\n",
+    "2. gender: \"Male\", \"Female\" or \"Other\"\n",
+    "3. age: age of the patient\n",
+    "4. hypertension: 0 if the patient doesn't have hypertension, 1 if the patient has hypertension\n",
+    "5. heart_disease: 0 if the patient doesn't have any heart diseases, 1 if the patient has a heart disease\n",
+    "6. ever_married: \"No\" or \"Yes\"\n",
+    "7. work_type: \"children\", \"Govt_jov\", \"Never_worked\", \"Private\" or \"Self-employed\"\n",
+    "8. Residence_type: \"Rural\" or \"Urban\"\n",
+    "9. avg_glucose_level: average glucose level in blood\n",
+    "10. bmi: body mass index\n",
+    "11. smoking_status: \"formerly smoked\", \"never smoked\", \"smokes\" or \"Unknown\"*\n",
+    "12. stroke: 1 if the patient had a stroke or 0 if not"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "afc753c1",
+   "metadata": {
+    "papermill": {
+     "duration": 0.002826,
+     "end_time": "2024-10-18T09:52:48.173398",
+     "exception": false,
+     "start_time": "2024-10-18T09:52:48.170572",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# The Import Statements\n",
+    "In order to be able to work with the dataset, and then to implement the machine learning models, we need to import the necessary libraries first."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "6e89c466",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-10-18T09:52:48.181773Z",
+     "iopub.status.busy": "2024-10-18T09:52:48.181311Z",
+     "iopub.status.idle": "2024-10-18T09:52:51.490916Z",
+     "shell.execute_reply": "2024-10-18T09:52:51.489627Z"
+    },
+    "papermill": {
+     "duration": 3.317335,
+     "end_time": "2024-10-18T09:52:51.493902",
+     "exception": false,
+     "start_time": "2024-10-18T09:52:48.176567",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# Pandas is used for handling data structures and data manipulation, such as reading data from CSV files, managing DataFrames, and performing operations like filtering, grouping, and aggregation.\n",
+    "import pandas as pd\n",
+    "\n",
+    "\n",
+    "# Matplotlib's pyplot module is used for creating visualisations such as line charts, bar charts, histograms, scatter plots, and more. It provides control over plot elements like titles, labels, and legends.\n",
+    "import matplotlib.pyplot as plt\n",
+    "\n",
+    "\n",
+    "# The RandomForestClassifier from scikit-learn is used for creating a random forest model, which is an ensemble machine learning method based on decision trees, commonly used for classification tasks.\n",
+    "from sklearn.ensemble import RandomForestClassifier\n",
+    "\n",
+    "# The MLPClassifier (Multilayer Perceptron) is a neural network model that supports multi-layer architecture for performing classification tasks, especially useful for more complex datasets.\n",
+    "from sklearn.neural_network import MLPClassifier\n",
+    "\n",
+    "# KNeighborsClassifier is used for implementing the k-Nearest Neighbors algorithm, which is a simple, instance-based learning algorithm for classification tasks based on feature similarity.\n",
+    "from sklearn.neighbors import KNeighborsClassifier\n",
+    "\n",
+    "# Confusion matrix is a performance evaluation metric used to summarize the results of a classification model by showing the count of true positive, true negative, false positive, and false negative predictions.\n",
+    "from sklearn.metrics import confusion_matrix\n",
+    "\n",
+    "# Classification report is used to provide a detailed performance evaluation of a classifier, including precision, recall, F1 score, and accuracy for each class in the dataset.\n",
+    "from sklearn.metrics import classification_report\n",
+    "\n",
+    "# ConfusionMatrixDisplay is used to visually represent the confusion matrix in the form of a heatmap, making it easier to interpret the classification results.\n",
+    "from sklearn.metrics import ConfusionMatrixDisplay\n",
+    "\n",
+    "# SMOTE (Synthetic Minority Oversampling Technique) is used to handle imbalanced datasets by generating synthetic examples for the minority class, improving model performance when dealing with imbalanced data.\n",
+    "from imblearn.over_sampling import SMOTE\n",
+    "\n",
+    "# train_test_split is used to split the dataset into training and testing subsets. This ensures that the model is trained on one part of the data and tested on another, allowing for evaluation of model performance on unseen data.\n",
+    "from sklearn.model_selection import train_test_split"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "7640c55d",
+   "metadata": {
+    "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
+    "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
+    "execution": {
+     "iopub.execute_input": "2024-10-18T09:52:51.502914Z",
+     "iopub.status.busy": "2024-10-18T09:52:51.502334Z",
+     "iopub.status.idle": "2024-10-18T09:52:51.514767Z",
+     "shell.execute_reply": "2024-10-18T09:52:51.513488Z"
+    },
+    "papermill": {
+     "duration": 0.020009,
+     "end_time": "2024-10-18T09:52:51.517526",
+     "exception": false,
+     "start_time": "2024-10-18T09:52:51.497517",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "/kaggle/input/stroke-prediction-dataset/healthcare-dataset-stroke-data.csv\n"
+     ]
+    }
+   ],
+   "source": [
+    "# This Python 3 environment comes with many helpful analytics libraries installed\n",
+    "# It is defined by the kaggle/python Docker image: https://github.com/kaggle/docker-python\n",
+    "# For example, here's several helpful packages to load\n",
+    "\n",
+    "import numpy as np # linear algebra\n",
+    "import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)\n",
+    "\n",
+    "# Input data files are available in the read-only \"../input/\" directory\n",
+    "# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory\n",
+    "\n",
+    "import os\n",
+    "for dirname, _, filenames in os.walk('/kaggle/input'):\n",
+    "    for filename in filenames:\n",
+    "        print(os.path.join(dirname, filename))\n",
+    "\n",
+    "# You can write up to 20GB to the current directory (/kaggle/working/) that gets preserved as output when you create a version using \"Save & Run All\" \n",
+    "# You can also write temporary files to /kaggle/temp/, but they won't be saved outside of the current session"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "2488ff92",
+   "metadata": {
+    "papermill": {
+     "duration": 0.003173,
+     "end_time": "2024-10-18T09:52:51.524306",
+     "exception": false,
+     "start_time": "2024-10-18T09:52:51.521133",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# Creating the Machine Learning Model Class\n",
+    "Since we will implement multiple machine learning models and compare their performances, and also because we want to comply with the rules and design of Object-Oriented Programming principles, we will create a class called `StrokeRiskPredictor` that will contain all the machine learning models, their implementations, and data preprocessing steps as different functions."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "4283bea9",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-10-18T09:52:51.533099Z",
+     "iopub.status.busy": "2024-10-18T09:52:51.532626Z",
+     "iopub.status.idle": "2024-10-18T09:52:51.538999Z",
+     "shell.execute_reply": "2024-10-18T09:52:51.537609Z"
+    },
+    "papermill": {
+     "duration": 0.013782,
+     "end_time": "2024-10-18T09:52:51.541591",
+     "exception": false,
+     "start_time": "2024-10-18T09:52:51.527809",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "class StrokeRiskPredictor:\n",
+    "    def __init__(self, data_path):\n",
+    "        # Load the dataset from the specified path\n",
+    "        self.data = pd.read_csv(data_path)"
+   ]
+  }
+ ],
+ "metadata": {
+  "kaggle": {
+   "accelerator": "none",
+   "dataSources": [
+    {
+     "datasetId": 1120859,
+     "sourceId": 1882037,
+     "sourceType": "datasetVersion"
+    }
+   ],
+   "dockerImageVersionId": 30786,
+   "isGpuEnabled": false,
+   "isInternetEnabled": false,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.14"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 7.233662,
+   "end_time": "2024-10-18T09:52:52.267255",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2024-10-18T09:52:45.033593",
+   "version": "2.6.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
